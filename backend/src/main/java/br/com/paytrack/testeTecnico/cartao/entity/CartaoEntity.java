@@ -40,11 +40,14 @@ public class CartaoEntity {
 
         this.createdAt = dataAtual;
         this.updatedAt = dataAtual;
+
     }
 
     @PreUpdate
     public void dataAtualizacao() {
+
         this.updatedAt = OffsetDateTime.now();
+
     }
 
 }

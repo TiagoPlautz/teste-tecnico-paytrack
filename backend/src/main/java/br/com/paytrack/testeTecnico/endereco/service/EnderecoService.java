@@ -25,6 +25,10 @@ public class EnderecoService {
 
         System.out.println("Mock habilitado: " + mockHabilitado);
 
+        System.out.println("Java Home: " + System.getProperty("java.home"));
+        System.out.println("Java Version: " + System.getProperty("java.version"));
+        System.out.println("TrustStore: " + System.getProperty("javax.net.ssl.trustStore"));
+
         String cepFormatado = cep.replaceAll("\\D", "");
 
         if (!cepFormatado.matches("\\d{8}")) {

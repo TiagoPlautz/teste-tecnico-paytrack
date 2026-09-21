@@ -1,6 +1,7 @@
 package br.com.paytrack.testeTecnico.cartao.controller;
 
 import br.com.paytrack.testeTecnico.cartao.dto.CartaoRequestDTO;
+import br.com.paytrack.testeTecnico.cartao.dto.CartaoResponseDTO;
 import br.com.paytrack.testeTecnico.cartao.dto.DetalhesCartaoResponseDTO;
 import br.com.paytrack.testeTecnico.cartao.dto.ListaCartoesResponseDTO;
 import br.com.paytrack.testeTecnico.cartao.service.CartaoService;
@@ -24,8 +25,8 @@ public class CartaoController {
     private final CartaoService cartaoService;
 
     @PostMapping
-    public ResponseEntity<DetalhesCartaoResponseDTO> cadastrarCartao(@Valid @RequestBody CartaoRequestDTO cartaoRequestDTO) throws BadRequestException {
-        DetalhesCartaoResponseDTO response = cartaoService.cadastrarCartao(cartaoRequestDTO);
+    public ResponseEntity<CartaoResponseDTO> cadastrarCartao(@Valid @RequestBody CartaoRequestDTO cartaoRequestDTO) throws BadRequestException {
+        CartaoResponseDTO response = cartaoService.cadastrarCartao(cartaoRequestDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

@@ -202,7 +202,7 @@ function ModalAdicionarCartao({
                     <input
                         type="text"
                         inputMode="numeric"
-                        maxLength={3}
+                        maxLength={4}
                         placeholder="CVV"
                         value={cvv}
                         onChange={(e) => {

@@ -1,6 +1,7 @@
 package br.com.paytrack.testeTecnico.cartao.service;
 
 import br.com.paytrack.testeTecnico.cartao.dto.CartaoRequestDTO;
+import br.com.paytrack.testeTecnico.cartao.dto.CartaoResponseDTO;
 import br.com.paytrack.testeTecnico.cartao.dto.DetalhesCartaoResponseDTO;
 import br.com.paytrack.testeTecnico.cartao.dto.ListaCartoesResponseDTO;
 import br.com.paytrack.testeTecnico.cartao.entity.CartaoEntity;
@@ -24,40 +25,47 @@ public class CartaoService {
     private final CryptoService cryptoService;
     private final HashService hashService;
 
-    public DetalhesCartaoResponseDTO cadastrarCartao(CartaoRequestDTO cartaoRequestDTO) throws BadRequestException {
+    public CartaoResponseDTO cadastrarCartao(CartaoRequestDTO cartaoRequestDTO) throws BadRequestException {
 
         String numeroOriginalCartao = cartaoRequestDTO.getNumeroCartao();
         String numeroCartaoHash = hashService.gerarHash(numeroOriginalCartao);
+        //String regex = "^\\d{3,4}$";
 
         if (cartaoRepository.existsByNumeroCartaoHash(numeroCartaoHash)) {
             throw new BadRequestException("O número de cartão informado já está cadastrado!");
         }
 
-        int valorCvv = Integer.parseInt(cartaoRequestDTO.getCvv());
+        //if (!cartaoRequestDTO.getCvv().matches(regex)) {
+        //    throw new BadRequestException("O campo CVV precisa ter entre 3 e 4 digitos numericos, não é permitido letras.");
+        //}
 
-        if (cartaoRequestDTO.getDataValidade() == null || !cartaoRequestDTO.getDataValidade().isAfter(OffsetDateTime.now())) {
-            throw new BadRequestException("Cartão vencido: a data de validade informada (" + cartaoRequestDTO.getDataValidade() + ") já passou");
-        }
+        //int valorCvv = Integer.parseInt(cartaoRequestDTO.getCvv());
 
-        if (valorCvv % 2 == 0) {
-            throw new BadRequestException("CVV inválido: CVV com numero par não é permitido cadastrar");
-        }
+        //if (cartaoRequestDTO.getDataValidade() == null || !cartaoRequestDTO.getDataValidade().isAfter(OffsetDateTime.now())) {
+        //    throw new BadRequestException("Cartão vencido: a data de validade informada (" + cartaoRequestDTO.getDataValidade() + ") já passou");
+        //}
+
+        //if (valorCvv % 2 == 0) {
+        //    throw new BadRequestException("CVV inválido: CVV com numero par não é permitido cadastrar");
+        //}
 
         String numeroCartaoCriptografado = cryptoService.criptografar(numeroOriginalCartao);
-        String cvvCriptografado = cryptoService.criptografar(cartaoRequestDTO.getCvv());
+        //String cvvCriptografado = cryptoService.criptografar(cartaoRequestDTO.getCvv());
+        String cvvCriptografado = validacaoCvv(cartaoRequestDTO.getCvv());
+        OffsetDateTime dataValidadeCartao = validarDataValidadeCartao(cartaoRequestDTO.getDataValidade());
 
         CartaoEntity cartaoSalvo = cartaoRepository.save(CartaoEntity.builder()
                 .descricao(cartaoRequestDTO.getDescricao())
                 .identificador(cartaoRequestDTO.getIdentificador())
                 .numeroCartao(numeroCartaoCriptografado)
                 .numeroCartaoHash(numeroCartaoHash)
-                .dataValidade(cartaoRequestDTO.getDataValidade())
+                .dataValidade(dataValidadeCartao)
                 .bandeira(cartaoRequestDTO.getBandeira())
                 .cvv(cvvCriptografado)
                 .ativo(definirStatusCartao(cartaoRequestDTO.getDataValidade()))
                 .build());
 
-        return detalhesCartaoResponseDTO(cartaoSalvo);
+        return cartaoResponseDTO(cartaoSalvo);
     }
 
     private ListaCartoesResponseDTO responseDTO(CartaoEntity cartaoEntity) {
@@ -92,6 +100,21 @@ public class CartaoService {
                 .build();
     }
 
+    private CartaoResponseDTO cartaoResponseDTO(CartaoEntity cartaoEntity) {
+
+        String numeroCartaoSemCriptografia = cryptoService.descriptografar(cartaoEntity.getNumeroCartao());
+
+        return CartaoResponseDTO.builder()
+                .id(cartaoEntity.getId())
+                .identificador(cartaoEntity.getIdentificador())
+                .numeroCartao(mascararNumeroCartao(numeroCartaoSemCriptografia))
+                .bandeira(cartaoEntity.getBandeira())
+                .descricao(cartaoEntity.getDescricao())
+                .dataValidade(cartaoEntity.getDataValidade())
+                .ativo(cartaoEntity.isAtivo())
+                .build();
+    }
+
     public List<ListaCartoesResponseDTO> listarTodosCartoes() {
         return cartaoRepository.findAll()
                 .stream()
@@ -102,6 +125,33 @@ public class CartaoService {
     public DetalhesCartaoResponseDTO consultaCartaoPorId(Long id) {
         CartaoEntity cartaoEntity = cartaoRepository.findById(id).orElseThrow(() -> new NotFoundException("Cartão não encontrado para o id" + id));
         return detalhesCartaoResponseDTO(cartaoEntity);
+    }
+
+    private String validacaoCvv(String cvv) {
+        String regex = "^\\d{3,4}$";
+
+        if (!cvv.matches(regex)) {
+            throw new BadRequestException("O campo CVV precisa ter entre 3 e 4 digitos numericos, não é permitido letras.");
+        }
+
+        int valorCvv = Integer.parseInt(cvv);
+
+        if (valorCvv % 2 == 1) {
+            throw new BadRequestException("CVV inválido: CVV com numero impar não é permitido cadastrar");
+        }
+
+        String cvvCriptografado = cryptoService.criptografar(cvv);
+
+        return cvvCriptografado;
+
+    }
+
+    private OffsetDateTime validarDataValidadeCartao (OffsetDateTime dataValidade) {
+        if (dataValidade == null || !dataValidade.isAfter(OffsetDateTime.now())) {
+            throw new BadRequestException("Cartão vencido: a data de validade informada (" + dataValidade + ") já passou");
+        }
+
+        return dataValidade;
     }
 
     private String mascararNumeroCartao(String numeroCartao) {

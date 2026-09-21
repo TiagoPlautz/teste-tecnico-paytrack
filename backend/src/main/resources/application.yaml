@@ -17,7 +17,7 @@ spring:
 
 app:
   endereco:
-    mock: true
+    mock: false
   crypto:
     key: ${CRYPTO_KEY}
   hash:

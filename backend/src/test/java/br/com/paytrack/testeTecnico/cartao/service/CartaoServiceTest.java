@@ -1,6 +1,7 @@
 package br.com.paytrack.testeTecnico.cartao.service;
 
 import br.com.paytrack.testeTecnico.cartao.dto.CartaoRequestDTO;
+import br.com.paytrack.testeTecnico.cartao.dto.CartaoResponseDTO;
 import br.com.paytrack.testeTecnico.cartao.dto.DetalhesCartaoResponseDTO;
 import br.com.paytrack.testeTecnico.cartao.dto.ListaCartoesResponseDTO;
 import br.com.paytrack.testeTecnico.cartao.entity.CartaoEntity;
@@ -58,7 +59,7 @@ class CartaoServiceTest {
                 .thenReturn("1234567890123456");
 
         when(cryptoService.descriptografar("cvvCriptografado"))
-                .thenReturn("357");
+                .thenReturn("358");
 
         DetalhesCartaoResponseDTO resultado =
                 cartaoService.consultaCartaoPorId(id);
@@ -66,7 +67,7 @@ class CartaoServiceTest {
         assertEquals(id, resultado.getId());
         assertTrue(resultado.isAtivo());
         assertEquals("1234567890123456", resultado.getNumeroCartao());
-        assertEquals("357", resultado.getCvv());
+        assertEquals("358", resultado.getCvv());
     }
 
     @Test
@@ -95,7 +96,7 @@ class CartaoServiceTest {
 
         CartaoRequestDTO request = CartaoRequestDTO.builder()
                 .numeroCartao("4532756279624064")
-                .cvv("357")
+                .cvv("358")
                 .dataValidade(OffsetDateTime.now().minusDays(1))
                 .build();
 
@@ -113,11 +114,11 @@ class CartaoServiceTest {
     }
 
     @Test
-    void naoDeveCadastrarCartaoComCvvPar() {
+    void naoDeveCadastrarCartaoComCvvImpar() {
 
         CartaoRequestDTO request = CartaoRequestDTO.builder()
                 .numeroCartao("4532756279624064")
-                .cvv("438")
+                .cvv("437")
                 .dataValidade(OffsetDateTime.now().plusYears(1))
                 .build();
 
@@ -127,7 +128,7 @@ class CartaoServiceTest {
         );
 
         assertEquals(
-                "CVV inválido: CVV com numero par não é permitido cadastrar",
+                "CVV inválido: CVV com numero impar não é permitido cadastrar",
                 exception.getMessage()
         );
 
@@ -140,7 +141,7 @@ class CartaoServiceTest {
 
         CartaoRequestDTO request = CartaoRequestDTO.builder()
                 .numeroCartao("4111111111111111")
-                .cvv("357")
+                .cvv("358")
                 .dataValidade(OffsetDateTime.now().plusYears(1))
                 .descricao("Cartão corporativo")
                 .identificador("CORPORATIVO")
@@ -156,7 +157,7 @@ class CartaoServiceTest {
         when(cryptoService.criptografar("4111111111111111"))
                 .thenReturn("numeroCriptografado");
 
-        when(cryptoService.criptografar("357"))
+        when(cryptoService.criptografar("358"))
                 .thenReturn("cvvCriptografado");
 
         CartaoEntity salvo = CartaoEntity.builder()
@@ -172,10 +173,7 @@ class CartaoServiceTest {
         when(cryptoService.descriptografar("numeroCriptografado"))
                 .thenReturn("4111111111111111");
 
-        when(cryptoService.descriptografar("cvvCriptografado"))
-                .thenReturn("357");
-
-        DetalhesCartaoResponseDTO resultado =
+        CartaoResponseDTO resultado =
                 cartaoService.cadastrarCartao(request);
 
         assertNotNull(resultado);

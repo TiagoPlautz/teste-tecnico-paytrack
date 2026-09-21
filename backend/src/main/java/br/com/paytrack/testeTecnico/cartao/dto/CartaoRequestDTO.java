@@ -33,7 +33,7 @@ public class CartaoRequestDTO {
     private String bandeira;
 
     @NotBlank(message = "O campo CVV é obrigatório")
-    @Pattern(regexp = "\\d{3,4}", message = "O campo CVV deve conter somente números e entre 3 a 4 caracteres")
+    //@Pattern(regexp = "\\d{3,4}", message = "O campo CVV deve conter somente números e entre 3 a 4 caracteres")
     private String cvv;
 
 }
