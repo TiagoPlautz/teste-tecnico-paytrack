@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: testeTecnico
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/teste_tecnico_pay
+    username: ${BD_USERNAME}
+    password: ${BD_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+app:
+  endereco:
+    mock: true
+  crypto:
+    key: ${CRYPTO_KEY}
+  hash:
+    key: ${HASH_KEY}
